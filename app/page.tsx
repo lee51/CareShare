@@ -14,7 +14,7 @@ export default function Page() {
     const { data: userData } = await supabase.auth.getUser();
     const user = userData?.user;
     if (!user) {
-      await supabase.auth.signInWithOAuth({ provider: 'github' });
+      router.push('/login');
       return;
     }
 
@@ -28,11 +28,7 @@ export default function Page() {
       return;
     }
 
-    await supabase.from('pet_caretakers').upsert({
-      pet_id: data.id,
-      user_id: user.id,
-      role: 'owner'
-    });
+    // The pet_caretakers record is now automatically created by the on_pet_created trigger in Postgres
 
     router.push(`/pet/${data.id}`);
   }

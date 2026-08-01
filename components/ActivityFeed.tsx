@@ -21,7 +21,7 @@ export default function ActivityFeed({ petId }: { petId: string }) {
     load();
 
     const channel = supabase
-      .channel(`public:activities:pet=${petId}`)
+      .channel(`public:activities:pet=${petId}-${Date.now()}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'activities', filter: `pet_id=eq.${petId}` }, (payload) => {
         setItems((s) => [payload.new, ...s].slice(0, 200));
       })
@@ -38,8 +38,15 @@ export default function ActivityFeed({ petId }: { petId: string }) {
       {items.length === 0 && <div className="text-sm text-gray-500">No recent activity</div>}
       {items.map((it) => (
         <div key={it.id} className="p-3 bg-white rounded shadow-sm">
-          <div className="text-sm font-medium">{it.activity_types?.name ?? 'action'}</div>
-          <div className="text-xs text-gray-500">{new Date(it.created_at).toLocaleString()}</div>
+          <div className="flex items-center justify-between">
+            <div className="text-sm font-medium capitalize">{it.activity_types?.name ?? 'action'}</div>
+            <div className="text-xs text-gray-500">{new Date(it.created_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}</div>
+          </div>
+          {it.metadata?.note && (
+            <div className="text-sm text-gray-700 mt-1.5 p-2 bg-gray-50 rounded italic border-l-2 border-indigo-300">
+              {it.metadata.note}
+            </div>
+          )}
         </div>
       ))}
     </div>

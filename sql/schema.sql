@@ -9,6 +9,7 @@ create table if not exists pets (
   birthday date,
   avatar_url text,
   metadata jsonb default '{}'::jsonb,
+  created_by uuid default auth.uid(),
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
@@ -68,6 +69,24 @@ create trigger pets_updated_at
   before update on pets
   for each row
   execute procedure update_updated_at_column();
+
+-- Trigger to automatically assign the creator as the owner in pet_caretakers
+create or replace function public.handle_new_pet()
+returns trigger as $$
+begin
+  if auth.uid() is not null then
+    insert into public.pet_caretakers (pet_id, user_id, role)
+    values (new.id, auth.uid(), 'owner');
+  end if;
+  return new;
+end;
+$$ language plpgsql security definer;
+
+drop trigger if exists on_pet_created on public.pets;
+create trigger on_pet_created
+  after insert on public.pets
+  for each row
+  execute procedure public.handle_new_pet();
 
 -- Seed sensible default activity types
 insert into activity_types (id, name, icon, color, default_for_kind)

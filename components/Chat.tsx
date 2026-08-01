@@ -22,7 +22,7 @@ export default function Chat({ petId }: { petId: string }) {
     load();
 
     const channel = supabase
-      .channel(`public:messages:pet=${petId}`)
+      .channel(`public:messages:pet=${petId}-${Date.now()}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `pet_id=eq.${petId}` }, (payload) => {
         setMessages((s) => [payload.new, ...s]);
       })
