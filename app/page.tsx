@@ -1,14 +1,76 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 
 export default function Page() {
+  const [checkingAuth, setCheckingAuth] = useState(true);
   const [choice, setChoice] = useState<'pet' | 'person' | null>(null);
   const [petKind, setPetKind] = useState<'dog' | 'cat'>('dog');
   const [petName, setPetName] = useState('');
   const router = useRouter();
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function openExistingPet(userId: string) {
+      const { data, error } = await supabase
+        .from('pet_caretakers')
+        .select('pet_id')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: true })
+        .limit(1)
+        .maybeSingle();
+
+      if (!mounted) return;
+
+      if (error) {
+        console.error(error);
+        setCheckingAuth(false);
+        return;
+      }
+
+      if (data?.pet_id) {
+        router.replace(`/pet/${data.pet_id}`);
+        return;
+      }
+
+      setCheckingAuth(false);
+    }
+
+    async function checkAuth() {
+      const { data } = await supabase.auth.getSession();
+      const userId = data.session?.user.id;
+
+      if (!mounted) return;
+
+      if (!userId) {
+        router.replace('/login');
+        return;
+      }
+
+      openExistingPet(userId);
+    }
+
+    checkAuth();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session) {
+        router.replace('/login');
+        return;
+      }
+
+      openExistingPet(session.user.id);
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, [router]);
 
   async function createPet() {
     const { data: userData } = await supabase.auth.getUser();
@@ -31,6 +93,10 @@ export default function Page() {
     // The pet_caretakers record is now automatically created by the on_pet_created trigger in Postgres
 
     router.push(`/pet/${data.id}`);
+  }
+
+  if (checkingAuth) {
+    return <div className="text-sm text-gray-600">Loading...</div>;
   }
 
   return (
