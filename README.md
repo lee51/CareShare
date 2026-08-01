@@ -12,8 +12,23 @@ NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
 ```
 
-3. npm install
-4. npm run dev
+3. Enable Corepack:
+
+```
+corepack enable
+```
+
+4. Install dependencies:
+
+```
+pnpm install
+```
+
+5. Start the development server:
+
+```
+pnpm dev
+```
 
 Notes
 - Keep your SUPABASE_SERVICE_ROLE_KEY private; do not put it in client env vars.
