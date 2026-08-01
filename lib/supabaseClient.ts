@@ -8,5 +8,11 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    storageKey: 'careshare.auth',
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true
+  },
   realtime: { params: { eventsPerSecond: 10 } }
 });
