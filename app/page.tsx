@@ -9,16 +9,18 @@ export default function Page() {
   const [choice, setChoice] = useState<'pet' | 'person' | null>(null);
   const [petKind, setPetKind] = useState<'dog' | 'cat'>('dog');
   const [petName, setPetName] = useState('');
+  const [userName, setUserName] = useState('');
+  const [user, setUser] = useState<any>(null);
   const router = useRouter();
 
   useEffect(() => {
     let mounted = true;
 
-    async function openExistingPet(userId: string) {
+    async function openExistingPet(sessionUser: any) {
       const { data, error } = await supabase
         .from('pet_caretakers')
         .select('pet_id')
-        .eq('user_id', userId)
+        .eq('user_id', sessionUser.id)
         .order('created_at', { ascending: true })
         .limit(1)
         .maybeSingle();
@@ -41,16 +43,18 @@ export default function Page() {
 
     async function checkAuth() {
       const { data } = await supabase.auth.getSession();
-      const userId = data.session?.user.id;
+      const sessionUser = data.session?.user;
 
       if (!mounted) return;
 
-      if (!userId) {
+      if (!sessionUser) {
         router.replace('/login');
         return;
       }
 
-      openExistingPet(userId);
+      setUser(sessionUser);
+      setUserName(sessionUser.user_metadata?.name || '');
+      openExistingPet(sessionUser.id);
     }
 
     checkAuth();
@@ -62,7 +66,9 @@ export default function Page() {
         router.replace('/login');
         return;
       }
-
+      
+      setUser(session.user);
+      setUserName(session.user.user_metadata?.name || '');
       openExistingPet(session.user.id);
     });
 
@@ -73,11 +79,15 @@ export default function Page() {
   }, [router]);
 
   async function createPet() {
-    const { data: userData } = await supabase.auth.getUser();
-    const user = userData?.user;
     if (!user) {
       router.push('/login');
       return;
+    }
+    
+    // Sync display name if changed
+    const trimmedName = userName.trim();
+    if (trimmedName && trimmedName !== user.user_metadata?.name) {
+      await supabase.auth.updateUser({ data: { name: trimmedName } });
     }
 
     const { data, error } = await supabase.from('pets').insert({
@@ -111,8 +121,19 @@ export default function Page() {
       ) : (
         <div className="mt-6">
           <h3 className="font-semibold">Create a pet</h3>
+          
           <label className="block mt-3">
-            <div className="text-sm text-gray-600">Name</div>
+            <div className="text-sm text-gray-600">Your Display Name</div>
+            <input 
+              value={userName} 
+              onChange={e => setUserName(e.target.value)} 
+              placeholder="How others will see you"
+              className="mt-1 block w-full rounded border px-3 py-2" 
+            />
+          </label>
+
+          <label className="block mt-3">
+            <div className="text-sm text-gray-600">Pet's Name</div>
             <input value={petName} onChange={e => setPetName(e.target.value)} className="mt-1 block w-full rounded border px-3 py-2" />
           </label>
           <label className="block mt-3">

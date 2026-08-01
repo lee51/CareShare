@@ -1,5 +1,6 @@
 /* app/layout.tsx */
 import './globals.css';
+import Header from '../components/Header';
 
 export const metadata = {
   title: 'CareShare',
@@ -11,11 +12,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body>
         <div className="min-h-screen bg-gray-50 text-gray-900">
-          <header className="p-4 border-b bg-white">
-            <div className="max-w-3xl mx-auto">
-              <h1 className="text-xl font-semibold">CareShare</h1>
-            </div>
-          </header>
+          <Header />
           <main className="max-w-3xl mx-auto p-4">{children}</main>
         </div>
       </body>

@@ -4,7 +4,10 @@
   "private": true,
   "packageManager": "pnpm@10.20.0",
   "scripts": {
-    "dev": "next dev -p 3000",
+    "dev": "next dev -p 3001",
+    "local": "NEXT_PUBLIC_USE_LOCAL_DB=true next dev -p 3000",
+    "supabase:start": "supabase start",
+    "supabase:stop": "supabase stop",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
