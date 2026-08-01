@@ -66,7 +66,7 @@ export default function Page() {
         router.replace('/login');
         return;
       }
-      
+
       setUser(session.user);
       setUserName(session.user.user_metadata?.name || '');
       openExistingPet(session.user.id);
@@ -83,7 +83,7 @@ export default function Page() {
       router.push('/login');
       return;
     }
-    
+
     // Sync display name if changed
     const trimmedName = userName.trim();
     if (trimmedName && trimmedName !== user.user_metadata?.name) {
@@ -121,19 +121,19 @@ export default function Page() {
       ) : (
         <div className="mt-6">
           <h3 className="font-semibold">Create a pet</h3>
-          
+
           <label className="block mt-3">
             <div className="text-sm text-gray-600">Your Display Name</div>
-            <input 
-              value={userName} 
-              onChange={e => setUserName(e.target.value)} 
+            <input
+              value={userName}
+              onChange={e => setUserName(e.target.value)}
               placeholder="How others will see you"
-              className="mt-1 block w-full rounded border px-3 py-2" 
+              className="mt-1 block w-full rounded border px-3 py-2"
             />
           </label>
 
           <label className="block mt-3">
-            <div className="text-sm text-gray-600">Pet's Name</div>
+            <div className="text-sm text-gray-600">{`Pet's Name`}</div>
             <input value={petName} onChange={e => setPetName(e.target.value)} className="mt-1 block w-full rounded border px-3 py-2" />
           </label>
           <label className="block mt-3">
