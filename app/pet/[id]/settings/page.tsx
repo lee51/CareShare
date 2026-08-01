@@ -8,7 +8,7 @@ import Link from 'next/link';
 export default function PetSettingsPage({ params }: { params: { id: string } }) {
   const petId = params.id;
   const router = useRouter();
-  
+
   const [pet, setPet] = useState<any | null>(null);
   const [activityTypes, setActivityTypes] = useState<any[]>([]);
   const [selectedActionIds, setSelectedActionIds] = useState<Set<string>>(new Set());
@@ -27,7 +27,7 @@ export default function PetSettingsPage({ params }: { params: { id: string } }) 
 
       // Load all available activity types
       const { data: typesData, error: typesError } = await supabase.from('activity_types').select('*');
-      
+
       if (typesError) {
         console.error("Error loading activity types:", typesError);
         alert(`Error loading activity types: ${typesError.message}`);
@@ -100,7 +100,7 @@ export default function PetSettingsPage({ params }: { params: { id: string } }) 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-2">Quick Actions</h2>
         <p className="text-sm text-gray-500 mb-6">
-          Select which quick actions you want to appear on {pet?.name}'s home screen.
+          {`Select which quick actions you want to appear on ${pet?.name}'s home screen.`}
         </p>
 
         <div className="space-y-3">
@@ -110,11 +110,11 @@ export default function PetSettingsPage({ params }: { params: { id: string } }) 
             </div>
           )}
           {activityTypes.map(type => (
-            <label 
-              key={type.id} 
+            <label
+              key={type.id}
               className={`flex items-center p-4 rounded-xl border cursor-pointer transition-all ${
-                selectedActionIds.has(type.id) 
-                  ? 'border-indigo-500 bg-indigo-50/50' 
+                selectedActionIds.has(type.id)
+                  ? 'border-indigo-500 bg-indigo-50/50'
                   : 'border-gray-200 hover:border-gray-300 bg-white'
               }`}
             >
