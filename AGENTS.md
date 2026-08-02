@@ -34,6 +34,7 @@ CareShare is a Next.js + Supabase PWA for coordinating care activities for depen
 - Explicitly ask for user permission before creating branches, committing code, pushing to the remote, or opening pull requests. Never force-push without warning the user first.
 - Commit messages must be a short paragraph explaining the changes.
 - End each commit message with the agent and model identifier on a separate line, for example: `Co-Authored-By: Codex (GPT-5)`.
+- When updating an implementation plan (as a comment) in a GitHub Issue, make sure to edit the last comment (using `gh issue edit <issue-number> --body ...` or `gh issue comment ... --edit-last`) instead of posting a new one.
 
 ### Antigravity only
 

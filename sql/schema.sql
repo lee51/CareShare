@@ -1,8 +1,8 @@
 -- sql/schema.sql
 create extension if not exists pgcrypto;
 
--- pets: the dependents
-create table if not exists pets (
+-- profiles: the dependents
+create table if not exists profiles (
   id uuid primary key default gen_random_uuid(),
   name text not null,
   kind text not null,
@@ -14,14 +14,14 @@ create table if not exists pets (
   updated_at timestamptz default now()
 );
 
--- pet_caretakers: link pets to auth.users
-create table if not exists pet_caretakers (
+-- p_caretakers: link profiles to auth.users
+create table if not exists p_caretakers (
   id uuid primary key default gen_random_uuid(),
-  pet_id uuid references pets(id) on delete cascade,
+  p_id uuid references profiles(id) on delete cascade,
   user_id uuid not null,
   role text default 'caretaker',
   created_at timestamptz default now(),
-  unique(pet_id, user_id)
+  unique(p_id, user_id)
 );
 
 -- activity_types: configurable actions
@@ -34,10 +34,10 @@ create table if not exists activity_types (
   created_at timestamptz default now()
 );
 
--- activities: activity log entries for pets
+-- activities: activity log entries for profiles
 create table if not exists activities (
   id uuid primary key default gen_random_uuid(),
-  pet_id uuid references pets(id) on delete cascade,
+  p_id uuid references profiles(id) on delete cascade,
   user_id uuid not null,
   activity_type_id uuid references activity_types(id),
   note text,
@@ -45,17 +45,17 @@ create table if not exists activities (
   created_at timestamptz default now()
 );
 
--- messages: simple chat messages for a pet
+-- messages: simple chat messages for a profile
 create table if not exists messages (
   id uuid primary key default gen_random_uuid(),
-  pet_id uuid references pets(id) on delete cascade,
+  p_id uuid references profiles(id) on delete cascade,
   user_id uuid not null,
   content text not null,
   metadata jsonb default '{}'::jsonb,
   created_at timestamptz default now()
 );
 
--- Trigger to update updated_at on pets
+-- Trigger to update updated_at on profiles
 create or replace function update_updated_at_column()
 returns trigger as $$
 begin
@@ -64,29 +64,29 @@ begin
 end;
 $$ language plpgsql;
 
-drop trigger if exists pets_updated_at on pets;
-create trigger pets_updated_at
-  before update on pets
+drop trigger if exists profiles_updated_at on profiles;
+create trigger profiles_updated_at
+  before update on profiles
   for each row
   execute procedure update_updated_at_column();
 
--- Trigger to automatically assign the creator as the owner in pet_caretakers
-create or replace function public.handle_new_pet()
+-- Trigger to automatically assign the creator as the owner in p_caretakers
+create or replace function public.handle_new_profile()
 returns trigger as $$
 begin
   if auth.uid() is not null then
-    insert into public.pet_caretakers (pet_id, user_id, role)
+    insert into public.p_caretakers (p_id, user_id, role)
     values (new.id, auth.uid(), 'owner');
   end if;
   return new;
 end;
 $$ language plpgsql security definer;
 
-drop trigger if exists on_pet_created on public.pets;
-create trigger on_pet_created
-  after insert on public.pets
+drop trigger if exists on_profile_created on public.profiles;
+create trigger on_profile_created
+  after insert on public.profiles
   for each row
-  execute procedure public.handle_new_pet();
+  execute procedure public.handle_new_profile();
 
 -- Seed sensible default activity types
 insert into activity_types (id, name, icon, color, default_for_kind)

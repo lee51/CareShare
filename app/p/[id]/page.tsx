@@ -7,26 +7,26 @@ import ActivityFeed from '../../../components/ActivityFeed';
 import Chat from '../../../components/Chat';
 import { useRouter } from 'next/navigation';
 
-export default function PetPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id: petId } = use(params);
-  const [pet, setPet] = useState<any | null>(null);
+export default function ProfilePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id: profileId } = use(params);
+  const [profile, setProfile] = useState<any | null>(null);
   const router = useRouter();
 
   useEffect(() => {
     async function load() {
-      const { data } = await supabase.from('pets').select('*').eq('id', petId).single();
+      const { data } = await supabase.from('profiles').select('*').eq('id', profileId).single();
       if (!data) {
         // If not visible due to RLS, redirect home
         router.push('/');
         return;
       }
-      setPet(data);
+      setProfile(data);
     }
     load();
 
     const sub = supabase
-      .channel(`public:activities:pet=${petId}`)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'activities', filter: `pet_id=eq.${petId}` }, (payload) => {
+      .channel(`public:activities:profile=${profileId}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'activities', filter: `p_id=eq.${profileId}` }, (payload) => {
         // no-op: ActivityFeed subscribes separately
       })
       .subscribe();
@@ -34,29 +34,29 @@ export default function PetPage({ params }: { params: Promise<{ id: string }> })
     return () => {
       void supabase.removeChannel(sub);
     };
-  }, [petId, router]);
+  }, [profileId, router]);
 
-  if (!pet) return <div>Loading...</div>;
+  if (!profile) return <div>Loading...</div>;
 
   return (
     <div>
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          {pet.avatar_url ? (
-            <img src={pet.avatar_url} alt={pet.name} className="w-12 h-12 rounded-full object-cover" />
+          {profile.avatar_url ? (
+            <img src={profile.avatar_url} alt={profile.name} className="w-12 h-12 rounded-full object-cover" />
           ) : (
             <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-semibold text-lg">
-              {pet.name[0]}
+              {profile.name[0]}
             </div>
           )}
           <div>
-            <h2 className="text-xl font-semibold">{pet.name}</h2>
-            <div className="text-sm text-gray-600">{pet.kind}</div>
+            <h2 className="text-xl font-semibold">{profile.name}</h2>
+            <div className="text-sm text-gray-600 capitalize">{profile.kind}</div>
           </div>
         </div>
         <div className="flex items-center space-x-2">
           <button 
-            onClick={() => router.push(`/pet/${pet.id}/gallery`)}
+            onClick={() => router.push(`/p/${profile.id}/gallery`)}
             className="p-2 text-gray-500 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"
             title="Gallery"
           >
@@ -65,7 +65,7 @@ export default function PetPage({ params }: { params: Promise<{ id: string }> })
             </svg>
           </button>
           <button 
-            onClick={() => router.push(`/pet/${pet.id}/settings`)}
+            onClick={() => router.push(`/p/${profile.id}/settings`)}
             className="p-2 text-gray-500 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"
             title="Settings"
           >
@@ -79,17 +79,17 @@ export default function PetPage({ params }: { params: Promise<{ id: string }> })
 
       <section className="mt-4">
         <h3 className="font-medium">Quick actions</h3>
-        <QuickActions petId={pet.id} petKind={pet.kind} petMetadata={pet.metadata} />
+        <QuickActions profileId={profile.id} profileKind={profile.kind} profileMetadata={profile.metadata} />
       </section>
 
       <section className="mt-4">
         <h3 className="font-medium">Activity</h3>
-        <ActivityFeed petId={pet.id} />
+        <ActivityFeed profileId={profile.id} />
       </section>
 
       <section className="mt-4">
         <h3 className="font-medium">Chat</h3>
-        <Chat petId={pet.id} />
+        <Chat profileId={profile.id} />
       </section>
     </div>
   );

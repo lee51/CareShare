@@ -8,7 +8,7 @@ function getLocalISOString() {
   return (new Date(Date.now() - tzoffset)).toISOString().slice(0, 16);
 }
 
-export default function QuickActions({ petId, petKind, petMetadata }: { petId: string; petKind: string; petMetadata?: any }) {
+export default function QuickActions({ profileId, profileKind, profileMetadata }: { profileId: string; profileKind: string; profileMetadata?: any }) {
   const [types, setTypes] = useState<any[]>([]);
   
   // Modal state
@@ -22,7 +22,7 @@ export default function QuickActions({ petId, petKind, petMetadata }: { petId: s
       const { data } = await supabase.from('activity_types').select('*');
       if (!data) return;
       
-      const savedActionIds = petMetadata?.quick_actions;
+      const savedActionIds = profileMetadata?.quick_actions;
       
       if (Array.isArray(savedActionIds)) {
         // Use user configured settings
@@ -34,7 +34,7 @@ export default function QuickActions({ petId, petKind, petMetadata }: { petId: s
       }
     }
     load();
-  }, [petKind, petMetadata?.quick_actions]);
+  }, [profileKind, profileMetadata?.quick_actions]);
 
   function handleActionClick(type: any) {
     setSelectedType(type);
@@ -63,7 +63,7 @@ export default function QuickActions({ petId, petKind, petMetadata }: { petId: s
     const createdDate = new Date(timeStr);
     
     await supabase.from('activities').insert({
-      pet_id: petId,
+      p_id: profileId,
       user_id: user.id,
       activity_type_id: selectedType.id,
       created_at: createdDate.toISOString(),
