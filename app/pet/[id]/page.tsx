@@ -1,14 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
 import QuickActions from '../../../components/QuickActions';
 import ActivityFeed from '../../../components/ActivityFeed';
 import Chat from '../../../components/Chat';
 import { useRouter } from 'next/navigation';
 
-export default function PetPage({ params }: { params: { id: string } }) {
-  const petId = params.id;
+export default function PetPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id: petId } = use(params);
   const [pet, setPet] = useState<any | null>(null);
   const router = useRouter();
 
