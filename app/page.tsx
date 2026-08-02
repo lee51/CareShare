@@ -16,11 +16,11 @@ export default function Page() {
   useEffect(() => {
     let mounted = true;
 
-    async function openExistingPet(sessionUser: any) {
+    async function openExistingPet(userId: string) {
       const { data, error } = await supabase
         .from('pet_caretakers')
         .select('pet_id')
-        .eq('user_id', sessionUser.id)
+        .eq('user_id', userId)
         .order('created_at', { ascending: true })
         .limit(1)
         .maybeSingle();
