@@ -26,8 +26,10 @@ CareShare is a Next.js + Supabase PWA for coordinating care activities for depen
 - Avoid complex abstractions unless they clearly reduce real complexity.
 - For Supabase Realtime, use unique channel names to avoid React Strict Mode races, and chain `.on()` before `.subscribe()`.
 - Enforce RLS on all Supabase tables. Caretakers may only select, insert, and update data for pets they are authorized for.
+- Always use `pnpm` instead of `npm` or `npx` for executing scripts and installing packages (e.g., use `pnpm supabase` instead of `npx supabase`).
 
 ## Git
 
+- Explicitly ask for user permission before creating branches, committing code, pushing to the remote, or opening pull requests. Never force-push without warning the user first.
 - Commit messages must be a short paragraph explaining the changes.
 - End each commit message with the agent and model identifier on a separate line, for example: `Co-Authored-By: Codex (GPT-5)`.

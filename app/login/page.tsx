@@ -14,14 +14,14 @@ export default function LoginPage() {
   useEffect(() => {
     let mounted = true;
 
-    async function redirectIfSignedIn() {
+    async function checkSessionAndRedirect() {
       const { data } = await supabase.auth.getSession();
       if (mounted && data.session) {
         router.replace('/');
       }
     }
 
-    redirectIfSignedIn();
+    checkSessionAndRedirect();
 
     const {
       data: { subscription },
@@ -31,9 +31,28 @@ export default function LoginPage() {
       }
     });
 
+    // Detect if the user logs in from another tab (e.g., clicking a magic link)
+    const handleStorageChange = (e: StorageEvent) => {
+      // The storageKey is configured as 'careshare.auth' in lib/supabaseClient.ts
+      if (e.key === 'careshare.auth') {
+        checkSessionAndRedirect();
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        checkSessionAndRedirect();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     return () => {
       mounted = false;
       subscription.unsubscribe();
+      window.removeEventListener('storage', handleStorageChange);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [router]);
 
