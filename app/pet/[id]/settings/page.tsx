@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 import { supabase } from '../../../../lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-export default function PetSettingsPage({ params }: { params: { id: string } }) {
-  const petId = params.id;
+export default function PetSettingsPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id: petId } = use(params);
   const router = useRouter();
 
   const [pet, setPet] = useState<any | null>(null);
