@@ -87,7 +87,7 @@ export default function Header() {
             <button
               onClick={() => setMenuOpen(!menuOpen)}
               className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 border border-gray-200 hover:bg-gray-200 hover:border-gray-300 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              aria-label="Profile menu"
+              aria-label="Account menu"
             >
               <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>

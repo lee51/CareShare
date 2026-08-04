@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
-export default function ActivityFeed({ petId }: { petId: string }) {
+export default function ActivityFeed({ profileId }: { profileId: string }) {
   const [items, setItems] = useState<any[]>([]);
 
   useEffect(() => {
@@ -12,7 +12,7 @@ export default function ActivityFeed({ petId }: { petId: string }) {
       const { data } = await supabase
         .from('activities')
         .select('*, activity_types(*)')
-        .eq('pet_id', petId)
+        .eq('p_id', profileId)
         .order('created_at', { ascending: false })
         .limit(50);
       if (!mounted) return;
@@ -21,8 +21,8 @@ export default function ActivityFeed({ petId }: { petId: string }) {
     load();
 
     const channel = supabase
-      .channel(`public:activities:pet=${petId}-${Date.now()}`)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'activities', filter: `pet_id=eq.${petId}` }, (payload) => {
+      .channel(`public:activities:profile=${profileId}-${Date.now()}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'activities', filter: `p_id=eq.${profileId}` }, (payload) => {
         setItems((s) => [payload.new, ...s].slice(0, 200));
       })
       .subscribe();
@@ -31,7 +31,7 @@ export default function ActivityFeed({ petId }: { petId: string }) {
       mounted = false;
       void supabase.removeChannel(channel);
     };
-  }, [petId]);
+  }, [profileId]);
 
   return (
     <div className="mt-2 space-y-2">

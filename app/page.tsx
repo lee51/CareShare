@@ -18,8 +18,8 @@ export default function Page() {
 
     async function openExistingPet(userId: string) {
       const { data, error } = await supabase
-        .from('pet_caretakers')
-        .select('pet_id')
+        .from('p_caretakers')
+        .select('p_id')
         .eq('user_id', userId)
         .order('created_at', { ascending: true })
         .limit(1)
@@ -33,8 +33,8 @@ export default function Page() {
         return;
       }
 
-      if (data?.pet_id) {
-        router.replace(`/pet/${data.pet_id}`);
+      if (data?.p_id) {
+        router.replace(`/p/${data.p_id}`);
         return;
       }
 
@@ -90,9 +90,9 @@ export default function Page() {
       await supabase.auth.updateUser({ data: { name: trimmedName } });
     }
 
-    const { data, error } = await supabase.from('pets').insert({
-      name: petName || (petKind === 'dog' ? 'Doggo' : 'Kitty'),
-      kind: petKind
+    const { data, error } = await supabase.from('profiles').insert({
+      name: petName || (choice === 'person' ? 'Human' : (petKind === 'dog' ? 'Doggo' : 'Kitty')),
+      kind: choice === 'person' ? 'person' : petKind
     }).select().single();
 
     if (error) {
@@ -100,9 +100,9 @@ export default function Page() {
       return;
     }
 
-    // The pet_caretakers record is now automatically created by the on_pet_created trigger in Postgres
+    // The p_caretakers record is now automatically created by the on_profile_created trigger in Postgres
 
-    router.push(`/pet/${data.id}`);
+    router.push(`/p/${data.id}`);
   }
 
   if (checkingAuth) {
@@ -116,11 +116,11 @@ export default function Page() {
       {!choice ? (
         <div className="mt-6 space-y-3">
           <button className="w-full py-3 rounded bg-indigo-600 text-white" onClick={() => setChoice('pet')}>Pet care</button>
-          <button className="w-full py-3 rounded bg-gray-200 text-gray-600" onClick={() => setChoice('person')}>Person care (coming)</button>
+          <button className="w-full py-3 rounded border border-indigo-600 text-indigo-600 font-medium" onClick={() => setChoice('person')}>Person care</button>
         </div>
       ) : (
         <div className="mt-6">
-          <h3 className="font-semibold">Create a pet</h3>
+          <h3 className="font-semibold">{choice === 'person' ? 'Create a profile' : 'Create a pet'}</h3>
 
           <label className="block mt-3">
             <div className="text-sm text-gray-600">Your Display Name</div>
@@ -133,16 +133,18 @@ export default function Page() {
           </label>
 
           <label className="block mt-3">
-            <div className="text-sm text-gray-600">{`Pet's Name`}</div>
+            <div className="text-sm text-gray-600">{choice === 'person' ? `Person's Name` : `Pet's Name`}</div>
             <input value={petName} onChange={e => setPetName(e.target.value)} className="mt-1 block w-full rounded border px-3 py-2" />
           </label>
-          <label className="block mt-3">
-            <div className="text-sm text-gray-600">Kind</div>
-            <select value={petKind} onChange={e => setPetKind(e.target.value as any)} className="mt-1 block w-full rounded border px-3 py-2">
-              <option value="dog">Dog</option>
-              <option value="cat">Cat</option>
-            </select>
-          </label>
+          {choice === 'pet' && (
+            <label className="block mt-3">
+              <div className="text-sm text-gray-600">Kind</div>
+              <select value={petKind} onChange={e => setPetKind(e.target.value as any)} className="mt-1 block w-full rounded border px-3 py-2">
+                <option value="dog">Dog</option>
+                <option value="cat">Cat</option>
+              </select>
+            </label>
+          )}
           <div className="mt-4">
             <button className="py-2 px-4 rounded bg-indigo-600 text-white" onClick={createPet}>Create & open</button>
             <button className="ml-3 py-2 px-4 rounded bg-gray-100" onClick={() => setChoice(null)}>Back</button>

@@ -5,11 +5,11 @@ import { supabase } from '../../../../lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-export default function PetSettingsPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id: petId } = use(params);
+export default function ProfileSettingsPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id: profileId } = use(params);
   const router = useRouter();
 
-  const [pet, setPet] = useState<any | null>(null);
+  const [profile, setProfile] = useState<any | null>(null);
   const [activityTypes, setActivityTypes] = useState<any[]>([]);
   const [selectedActionIds, setSelectedActionIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
@@ -17,13 +17,13 @@ export default function PetSettingsPage({ params }: { params: Promise<{ id: stri
 
   useEffect(() => {
     async function load() {
-      // Load pet details
-      const { data: petData } = await supabase.from('pets').select('*').eq('id', petId).single();
-      if (!petData) {
+      // Load profile details
+      const { data: profileData } = await supabase.from('profiles').select('*').eq('id', profileId).single();
+      if (!profileData) {
         router.push('/');
         return;
       }
-      setPet(petData);
+      setProfile(profileData);
 
       // Load all available activity types
       const { data: typesData, error: typesError } = await supabase.from('activity_types').select('*');
@@ -38,7 +38,7 @@ export default function PetSettingsPage({ params }: { params: Promise<{ id: stri
       }
 
       // Initialize selected actions
-      const savedActionIds = petData.metadata?.quick_actions;
+      const savedActionIds = profileData.metadata?.quick_actions;
       if (Array.isArray(savedActionIds)) {
         setSelectedActionIds(new Set(savedActionIds));
       } else if (typesData && typesData.length > 0) {
@@ -52,7 +52,7 @@ export default function PetSettingsPage({ params }: { params: Promise<{ id: stri
       setLoading(false);
     }
     load();
-  }, [petId, router]);
+  }, [profileId, router]);
 
   const toggleAction = (id: string) => {
     setSelectedActionIds(prev => {
@@ -69,18 +69,18 @@ export default function PetSettingsPage({ params }: { params: Promise<{ id: stri
   const handleSave = async () => {
     setSaving(true);
     const updatedMetadata = {
-      ...pet.metadata,
+      ...profile.metadata,
       quick_actions: Array.from(selectedActionIds)
     };
 
     const { error } = await supabase
-      .from('pets')
+      .from('profiles')
       .update({ metadata: updatedMetadata })
-      .eq('id', petId);
+      .eq('id', profileId);
 
     setSaving(false);
     if (!error) {
-      router.push(`/pet/${petId}`);
+      router.push(`/p/${profileId}`);
     } else {
       alert('Failed to save settings');
     }
@@ -92,7 +92,7 @@ export default function PetSettingsPage({ params }: { params: Promise<{ id: stri
     <div className="max-w-md mx-auto p-4 min-h-screen bg-gray-50">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-        <Link href={`/pet/${petId}`} className="text-indigo-600 font-medium hover:text-indigo-500">
+        <Link href={`/p/${profileId}`} className="text-indigo-600 font-medium hover:text-indigo-500">
           Cancel
         </Link>
       </div>
@@ -100,7 +100,7 @@ export default function PetSettingsPage({ params }: { params: Promise<{ id: stri
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-2">Quick Actions</h2>
         <p className="text-sm text-gray-500 mb-6">
-          {`Select which quick actions you want to appear on ${pet?.name}'s home screen.`}
+          {`Select which quick actions you want to appear on ${profile?.name}'s home screen.`}
         </p>
 
         <div className="space-y-3">

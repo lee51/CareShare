@@ -1,6 +1,6 @@
 # CareShare
 
-A minimal Next.js + Supabase Progressive Web App (PWA) scaffold for pet & person care. This branch contains the initial scaffold for the pet-care MVP (dog & cat), including database migrations, RLS policy SQL, and a mobile-first Next + Supabase frontend.
+A Next.js + Supabase Progressive Web App (PWA) for pet & person care. This branch contains the initial scaffold for the pet-care MVP (dog & cat), including database migrations, RLS policy SQL, and a mobile-first Next + Supabase frontend.
 
 Run locally
 
@@ -31,10 +31,12 @@ pnpm dev
 ```
 
 Notes
+
 - Keep your SUPABASE_SERVICE_ROLE_KEY private; do not put it in client env vars.
 - This scaffold uses the Next App Router and Tailwind for styling.
 
 What is included
+
 - sql/schema.sql: table definitions and default activity type seeds
 - sql/policies.sql: basic RLS policies to limit access to pet caretakers
 - app/: Next.js app with onboarding and pet detail pages

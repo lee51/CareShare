@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
-export default function Chat({ petId }: { petId: string }) {
+export default function Chat({ profileId }: { profileId: string }) {
   const [messages, setMessages] = useState<any[]>([]);
   const [text, setText] = useState('');
 
@@ -13,7 +13,7 @@ export default function Chat({ petId }: { petId: string }) {
       const { data } = await supabase
         .from('messages')
         .select('*')
-        .eq('pet_id', petId)
+        .eq('p_id', profileId)
         .order('created_at', { ascending: false })
         .limit(50);
       if (!mounted) return;
@@ -22,8 +22,8 @@ export default function Chat({ petId }: { petId: string }) {
     load();
 
     const channel = supabase
-      .channel(`public:messages:pet=${petId}-${Date.now()}`)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `pet_id=eq.${petId}` }, (payload) => {
+      .channel(`public:messages:profile=${profileId}-${Date.now()}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `p_id=eq.${profileId}` }, (payload) => {
         setMessages((s) => [payload.new, ...s]);
       })
       .subscribe();
@@ -32,7 +32,7 @@ export default function Chat({ petId }: { petId: string }) {
       mounted = false;
       void supabase.removeChannel(channel);
     };
-  }, [petId]);
+  }, [profileId]);
 
   async function send() {
     if (!text.trim()) return;
@@ -42,7 +42,7 @@ export default function Chat({ petId }: { petId: string }) {
       alert('Please sign in');
       return;
     }
-    await supabase.from('messages').insert({ pet_id: petId, user_id: user.id, content: text.trim() });
+    await supabase.from('messages').insert({ p_id: profileId, user_id: user.id, content: text.trim() });
     setText('');
   }
 

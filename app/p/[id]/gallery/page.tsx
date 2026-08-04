@@ -5,7 +5,7 @@ import { supabase } from '../../../../lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 
 export default function GalleryPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id: petId } = use(params);
+  const { id: profileId } = use(params);
   const router = useRouter();
   
   const [photos, setPhotos] = useState<any[]>([]);
@@ -16,7 +16,7 @@ export default function GalleryPage({ params }: { params: Promise<{ id: string }
 
   const fetchPhotos = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase.storage.from('gallery').list(`${petId}/`);
+    const { data, error } = await supabase.storage.from('gallery').list(`${profileId}/`);
     
     if (error) {
       console.error('Error fetching photos:', error);
@@ -27,7 +27,7 @@ export default function GalleryPage({ params }: { params: Promise<{ id: string }
       setPhotos(validFiles);
     }
     setLoading(false);
-  }, [petId]);
+  }, [profileId]);
 
   useEffect(() => {
     fetchPhotos();
@@ -43,7 +43,7 @@ export default function GalleryPage({ params }: { params: Promise<{ id: string }
     const uploadPromises = Array.from(files).map(async (file) => {
       const fileExt = file.name.split('.').pop();
       const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
-      const filePath = `${petId}/${fileName}`;
+      const filePath = `${profileId}/${fileName}`;
 
       const { error } = await supabase.storage.from('gallery').upload(filePath, file);
       if (error) {
@@ -67,23 +67,23 @@ export default function GalleryPage({ params }: { params: Promise<{ id: string }
   };
 
   const handleSetAvatar = async (fileName: string) => {
-    const { data: { publicUrl } } = supabase.storage.from('gallery').getPublicUrl(`${petId}/${fileName}`);
+    const { data: { publicUrl } } = supabase.storage.from('gallery').getPublicUrl(`${profileId}/${fileName}`);
     
-    const { error } = await supabase.from('pets').update({ avatar_url: publicUrl }).eq('id', petId);
+    const { error } = await supabase.from('profiles').update({ avatar_url: publicUrl }).eq('id', profileId);
     
     if (error) {
       console.error('Error setting avatar:', error);
       alert('Failed to set avatar');
     } else {
       alert('Avatar updated successfully!');
-      router.push(`/pet/${petId}`);
+      router.push(`/p/${profileId}`);
     }
   };
 
   const handleDelete = async (fileName: string) => {
     if (!confirm('Are you sure you want to delete this photo?')) return;
     
-    const { error } = await supabase.storage.from('gallery').remove([`${petId}/${fileName}`]);
+    const { error } = await supabase.storage.from('gallery').remove([`${profileId}/${fileName}`]);
     
     if (error) {
       console.error('Error deleting photo:', error);
@@ -98,7 +98,7 @@ export default function GalleryPage({ params }: { params: Promise<{ id: string }
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-3">
           <button 
-            onClick={() => router.push(`/pet/${petId}`)}
+            onClick={() => router.push(`/p/${profileId}`)}
             className="p-2 text-gray-500 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -141,7 +141,7 @@ export default function GalleryPage({ params }: { params: Promise<{ id: string }
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {photos.map((file) => {
-            const { data: { publicUrl } } = supabase.storage.from('gallery').getPublicUrl(`${petId}/${file.name}`);
+            const { data: { publicUrl } } = supabase.storage.from('gallery').getPublicUrl(`${profileId}/${file.name}`);
             return (
               <div key={file.id} className="relative group rounded-xl overflow-hidden aspect-square bg-gray-100 border border-gray-200">
                 <img 

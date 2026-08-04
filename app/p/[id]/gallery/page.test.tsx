@@ -14,7 +14,7 @@ vi.mock('react', async (importOriginal) => {
       promise.then(res => { result = res; });
       // In this simple test setup where we pass an already resolved Promise.resolve()
       // or we can just mock it to return the resolved value directly for our tests
-      return { id: 'pet-123' }; 
+      return { id: 'profile-123' }; 
     },
   };
 });
@@ -69,7 +69,7 @@ describe('GalleryPage', () => {
   });
 
   it('renders loading state initially and then shows photos', async () => {
-    render(<GalleryPage params={Promise.resolve({ id: 'pet-123' })} />);
+    render(<GalleryPage params={Promise.resolve({ id: 'profile-123' })} />);
     
     expect(screen.getByText('Loading photos...')).toBeInTheDocument();
     
@@ -83,7 +83,7 @@ describe('GalleryPage', () => {
 
   it('shows empty state when no photos are returned', async () => {
     listMock.mockResolvedValue({ data: [], error: null });
-    render(<GalleryPage params={Promise.resolve({ id: 'pet-123' })} />);
+    render(<GalleryPage params={Promise.resolve({ id: 'profile-123' })} />);
     
     await waitFor(() => {
       expect(screen.getByText('No photos yet.')).toBeInTheDocument();
@@ -96,7 +96,7 @@ describe('GalleryPage', () => {
     // Stub window.alert
     const alertMock = vi.spyOn(window, 'alert').mockImplementation(() => {});
 
-    render(<GalleryPage params={Promise.resolve({ id: 'pet-123' })} />);
+    render(<GalleryPage params={Promise.resolve({ id: 'profile-123' })} />);
     
     await waitFor(() => {
       expect(screen.queryByText('Loading photos...')).not.toBeInTheDocument();
@@ -107,8 +107,8 @@ describe('GalleryPage', () => {
     
     await waitFor(() => {
       expect(updateMock).toHaveBeenCalledWith({ avatar_url: 'https://example.com/photo.jpg' });
-      expect(eqMock).toHaveBeenCalledWith('id', 'pet-123');
-      expect(pushMock).toHaveBeenCalledWith('/pet/pet-123');
+      expect(eqMock).toHaveBeenCalledWith('id', 'profile-123');
+      expect(pushMock).toHaveBeenCalledWith('/p/profile-123');
     });
     
     alertMock.mockRestore();
