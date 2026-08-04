@@ -138,6 +138,19 @@ export default function ProfileSettingsPage({ params }: { params: Promise<{ id: 
           ))}
         </div>
 
+        <div className="mt-8 mb-4 border-t border-gray-100 pt-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">Care Team</h2>
+          <p className="text-sm text-gray-500 mb-4">
+            Invite another user to join your care team.
+          </p>
+          <Link
+            href={`/p/${profileId}/invite`}
+            className="inline-flex justify-center w-full py-3.5 px-4 bg-white border border-gray-300 text-gray-700 font-semibold rounded-xl shadow-sm hover:bg-gray-50 active:scale-[0.98] transition-all"
+          >
+            Invite a new caretaker
+          </Link>
+        </div>
+
         <button
           onClick={handleSave}
           disabled={saving}

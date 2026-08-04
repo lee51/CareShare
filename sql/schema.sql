@@ -103,3 +103,12 @@ select * from (
     (gen_random_uuid(), 'medicine', 'pills', '#EC4899', ARRAY['dog','cat'])
 ) as t(id,name,icon,color,default_for_kind)
 on conflict do nothing;
+
+-- p_invites: generated links to join care team
+create table if not exists p_invites (
+  id uuid primary key default gen_random_uuid(),
+  p_id uuid references profiles(id) on delete cascade not null,
+  created_by uuid not null,
+  created_at timestamptz default now() not null,
+  expires_at timestamptz default now() + interval '24 hours' not null
+);
