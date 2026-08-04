@@ -90,3 +90,27 @@ grant all on table public.messages to authenticated, anon;
 -- Ensure activity_types are readable if RLS is ever enabled
 drop policy if exists "allow public read on activity_types" on activity_types;
 create policy "allow public read on activity_types" on activity_types for select using (true);
+
+-- p_invites policies
+alter table p_invites enable row level security;
+
+-- Caretakers can insert invites for their profiles
+drop policy if exists "insert p_invites for caretakers" on p_invites;
+create policy "insert p_invites for caretakers" on p_invites
+  for insert with check (
+    exists (select 1 from p_caretakers pc where pc.p_id = p_invites.p_id and pc.user_id = auth.uid())
+  );
+
+-- Caretakers can see all invites for their profiles
+drop policy if exists "select p_invites for caretakers" on p_invites;
+create policy "select p_invites for caretakers" on p_invites
+  for select using (
+    exists (select 1 from p_caretakers pc where pc.p_id = p_invites.p_id and pc.user_id = auth.uid())
+  );
+
+-- Anyone can read an invite by id (if they have the link) so they can view it
+drop policy if exists "select p_invites by id" on p_invites;
+create policy "select p_invites by id" on p_invites
+  for select using (true);
+
+grant all on table public.p_invites to authenticated, anon;
