@@ -1,9 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const useLocal =
-  process.env.NEXT_PUBLIC_USE_LOCAL_DB === 'true' ||
-  (Boolean(process.env.NEXT_PUBLIC_LOCAL_SUPABASE_URL) && process.env.NEXT_PUBLIC_USE_LOCAL_DB !== 'false');
+const useLocal = process.env.NEXT_PUBLIC_USE_LOCAL_DB === 'true';
 
 const SUPABASE_URL = (useLocal ? process.env.NEXT_PUBLIC_LOCAL_SUPABASE_URL : process.env.NEXT_PUBLIC_SUPABASE_URL) ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.NEXT_PUBLIC_LOCAL_SUPABASE_URL;
 
