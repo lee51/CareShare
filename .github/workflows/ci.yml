@@ -1,0 +1,96 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  unit-tests:
+    name: Typecheck & Unit Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Run unit tests
+        run: pnpm test run --exclude '**/*.integration.test.ts'
+
+  integration-tests:
+    name: Integration Tests
+    needs: unit-tests
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Cache Supabase Docker Images
+        id: cache-supabase
+        uses: actions/cache@v4
+        with:
+          path: /tmp/supabase-docker-cache
+          key: supabase-docker-${{ runner.os }}-${{ hashFiles('supabase/config.toml') }}
+
+      - name: Load cached Docker images
+        if: steps.cache-supabase.outputs.cache-hit == 'true'
+        run: |
+          if [ -f "/tmp/supabase-docker-cache/images.tar" ]; then
+            echo "Loading cached Supabase Docker images..."
+            docker load -i /tmp/supabase-docker-cache/images.tar
+          fi
+
+      - name: Start local Supabase
+        run: pnpm supabase start
+
+      - name: Save Docker images to cache
+        if: steps.cache-supabase.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p /tmp/supabase-docker-cache
+          echo "Saving Supabase Docker images to cache..."
+          docker save $(docker images --format '{{.Repository}}:{{.Tag}}' | grep -v '<none>') -o /tmp/supabase-docker-cache/images.tar
+
+      - name: Run integration tests
+        env:
+          NEXT_PUBLIC_USE_LOCAL_DB: ${{ secrets.NEXT_PUBLIC_USE_LOCAL_DB }}
+          NEXT_PUBLIC_LOCAL_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_LOCAL_SUPABASE_URL }}
+          NEXT_PUBLIC_LOCAL_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_LOCAL_SUPABASE_ANON_KEY }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+        run: pnpm test run
