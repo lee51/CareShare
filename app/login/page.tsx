@@ -7,9 +7,12 @@ import { supabase } from '../../lib/supabaseClient';
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
+  const [token, setToken] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [verifying, setVerifying] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [otpSent, setOtpSent] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -31,9 +34,7 @@ export default function LoginPage() {
       }
     });
 
-    // Detect if the user logs in from another tab (e.g., clicking a magic link)
     const handleStorageChange = (e: StorageEvent) => {
-      // The storageKey is configured as 'careshare.auth' in lib/supabaseClient.ts
       if (e.key === 'careshare.auth') {
         checkSessionAndRedirect();
       }
@@ -56,7 +57,7 @@ export default function LoginPage() {
     };
   }, [router]);
 
-  const handleAuth = async (e: React.FormEvent) => {
+  const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
@@ -66,16 +67,36 @@ export default function LoginPage() {
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          // You can customize the redirect URL here
           emailRedirectTo: `${window.location.origin}/`,
         },
       });
       if (error) throw error;
-      setMessage("Success! We've sent a magic link to your email.");
+      setOtpSent(true);
+      setMessage("We've sent a magic link & one-time code to your email.");
     } catch (err: any) {
       setError(err.message || 'An error occurred during authentication.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setVerifying(true);
+    setError(null);
+
+    try {
+      const { error } = await supabase.auth.verifyOtp({
+        email,
+        token,
+        type: 'email',
+      });
+      if (error) throw error;
+      router.replace('/');
+    } catch (err: any) {
+      setError(err.message || 'Invalid one-time code.');
+    } finally {
+      setVerifying(false);
     }
   };
 
@@ -87,46 +108,97 @@ export default function LoginPage() {
             Welcome
           </h1>
           <p className="text-white/70 text-sm">
-            Sign in instantly with a magic link
+            {otpSent
+              ? 'Enter your one-time code or click the magic link'
+              : 'Sign in instantly with a magic link or one-time code'}
           </p>
         </div>
 
-        <form onSubmit={handleAuth} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-white/90 mb-1.5" htmlFor="email">
-              Email Address
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent transition-all"
-              placeholder="you@example.com"
-              required
-            />
-          </div>
-
-          {error && (
-            <div className="p-3 rounded-lg bg-red-500/20 border border-red-500/50 text-red-200 text-sm">
-              {error}
+        {!otpSent ? (
+          <form onSubmit={handleSendOtp} className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-white/90 mb-1.5" htmlFor="email">
+                Email Address
+              </label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent transition-all"
+                placeholder="you@example.com"
+                required
+              />
             </div>
-          )}
 
-          {message && (
-            <div className="p-3 rounded-lg bg-green-500/20 border border-green-500/50 text-green-200 text-sm font-medium text-center">
-              {message}
+            {error && (
+              <div className="p-3 rounded-lg bg-red-500/20 border border-red-500/50 text-red-200 text-sm">
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3.5 px-4 bg-white text-purple-900 font-semibold rounded-xl shadow-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-purple-500 active:scale-[0.98] transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Sending link...' : 'Send Magic Link / Code'}
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={handleVerifyOtp} className="space-y-6">
+            {message && (
+              <div className="p-3 rounded-lg bg-green-500/20 border border-green-500/50 text-green-200 text-sm font-medium text-center">
+                {message}
+              </div>
+            )}
+
+            <div>
+              <label className="block text-sm font-medium text-white/90 mb-1.5" htmlFor="token">
+                One-Time Code
+              </label>
+              <input
+                id="token"
+                type="text"
+                value={token}
+                onChange={(e) => setToken(e.target.value)}
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent transition-all tracking-widest text-center text-xl font-mono"
+                placeholder="123456"
+                required
+                maxLength={6}
+              />
             </div>
-          )}
 
-          <button
-            type="submit"
-            disabled={loading || !!message}
-            className="w-full py-3.5 px-4 bg-white text-purple-900 font-semibold rounded-xl shadow-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-purple-500 active:scale-[0.98] transition-all disabled:opacity-70 disabled:cursor-not-allowed"
-          >
-            {loading ? 'Sending link...' : message ? 'Check your email' : 'Send Magic Link'}
-          </button>
-        </form>
+            {error && (
+              <div className="p-3 rounded-lg bg-red-500/20 border border-red-500/50 text-red-200 text-sm">
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={verifying}
+              className="w-full py-3.5 px-4 bg-white text-purple-900 font-semibold rounded-xl shadow-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-purple-500 active:scale-[0.98] transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+            >
+              {verifying ? 'Verifying...' : 'Verify Code'}
+            </button>
+
+            <div className="text-center pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setOtpSent(false);
+                  setMessage(null);
+                  setError(null);
+                  setToken('');
+                }}
+                className="text-xs text-white/70 hover:text-white underline transition-colors"
+              >
+                Use a different email or resend code
+              </button>
+            </div>
+          </form>
+        )}
       </div>
     </div>
   );
