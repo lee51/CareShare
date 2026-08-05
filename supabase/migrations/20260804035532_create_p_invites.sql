@@ -8,15 +8,20 @@ create table if not exists p_invites (
   used_at timestamptz
 );
 
+alter table p_invites add column if not exists used_by uuid;
+alter table p_invites add column if not exists used_at timestamptz;
+
 alter table p_invites enable row level security;
 
 -- Caretakers can insert invites for their profiles
+drop policy if exists "insert p_invites for caretakers" on p_invites;
 create policy "insert p_invites for caretakers" on p_invites
   for insert with check (
     exists (select 1 from p_caretakers pc where pc.p_id = p_invites.p_id and pc.user_id = auth.uid())
   );
 
 -- Caretakers can see all invites for their profiles
+drop policy if exists "select p_invites for caretakers" on p_invites;
 create policy "select p_invites for caretakers" on p_invites
   for select using (
     exists (select 1 from p_caretakers pc where pc.p_id = p_invites.p_id and pc.user_id = auth.uid())
@@ -25,6 +30,7 @@ create policy "select p_invites for caretakers" on p_invites
 grant select, insert, update on table public.p_invites to authenticated;
 
 -- Function to safely fetch invite & profile details by ID (without exposing the whole table)
+drop function if exists get_invite(uuid);
 create or replace function get_invite(invite_id uuid)
 returns table(
   id uuid, 
@@ -61,6 +67,7 @@ $$;
 grant execute on function get_invite(uuid) to anon, authenticated;
 
 -- Function to safely accept an invite
+drop function if exists accept_invite(uuid);
 create or replace function accept_invite(invite_id uuid)
 returns uuid
 language plpgsql
