@@ -32,12 +32,13 @@ export default function InvitePage({ params }: { params: Promise<{ id: string }>
         return;
       }
 
-      // Check for existing valid invite
+      // Check for existing valid unused invite
       const oneMinuteFromNow = new Date(Date.now() + 60000).toISOString();
       const { data: existingInvites, error: fetchError } = await supabase
         .from('p_invites')
         .select('*')
         .eq('p_id', profileId)
+        .is('used_by', null)
         .gt('expires_at', oneMinuteFromNow)
         .order('expires_at', { ascending: false })
         .limit(1);

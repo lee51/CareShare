@@ -36,6 +36,12 @@ export default function AcceptInvitePage({ params }: { params: Promise<{ id: str
       }
 
       const inviteData = data[0];
+      if (inviteData.used_by) {
+        setError('This invitation link has already been used.');
+        setLoading(false);
+        return;
+      }
+
       setInvite(inviteData);
       setProfile({
         name: inviteData.profile_name,
@@ -95,8 +101,8 @@ export default function AcceptInvitePage({ params }: { params: Promise<{ id: str
 
     if (error) {
       alert('Failed to accept invite: ' + error.message);
-    } else if (data && data.length > 0) {
-      router.push(`/p/${data[0].p_id}`);
+    } else if (data) {
+      router.push(`/p/${data}`);
     } else {
       router.push(`/p/${invite.p_id}`);
     }
