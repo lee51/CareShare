@@ -26,7 +26,7 @@ export default function Chat({ profileId }: { profileId: string }) {
 
     async function load() {
       const { data } = await supabase
-        .from('messages')
+        .from('messages_with_senders')
         .select('*')
         .eq('p_id', profileId)
         .order('created_at', { ascending: false })
@@ -75,15 +75,18 @@ export default function Chat({ profileId }: { profileId: string }) {
         p_id: profileId,
         user_id: user.id,
         content,
-        metadata: { sender_name: senderName },
       })
       .select()
       .single();
 
     if (data) {
+      const newMsg = {
+        ...data,
+        sender_name: data.sender_name ?? senderName,
+      };
       setMessages((prev) => {
-        if (prev.some((m) => m.id === data.id)) return prev;
-        return [...prev, data];
+        if (prev.some((m) => m.id === newMsg.id)) return prev;
+        return [...prev, newMsg];
       });
     }
   }
@@ -96,9 +99,10 @@ export default function Chat({ profileId }: { profileId: string }) {
         ) : (
           messages.map((m) => {
             const isMe = Boolean(currentUser?.id && m.user_id === currentUser.id);
+            const rawName = m.sender_name ?? m.metadata?.sender_name;
             const senderName = isMe
-              ? (m.metadata?.sender_name ? `${m.metadata.sender_name} (You)` : 'You')
-              : (m.metadata?.sender_name ?? 'Caretaker');
+              ? (rawName ? `${rawName} (You)` : 'You')
+              : (rawName ?? 'Caretaker');
 
             return (
               <div key={m.id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>

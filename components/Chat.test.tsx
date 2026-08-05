@@ -16,6 +16,7 @@ const {
   insertMock,
   insertSelectMock,
   insertSingleMock,
+  fromMock,
 } = vi.hoisted(() => ({
   selectMock: vi.fn(),
   eqMock: vi.fn(),
@@ -29,14 +30,18 @@ const {
   insertMock: vi.fn(),
   insertSelectMock: vi.fn(),
   insertSingleMock: vi.fn(),
+  fromMock: vi.fn(),
 }));
 
 vi.mock('../lib/supabaseClient', () => ({
   supabase: {
-    from: () => ({
-      select: selectMock,
-      insert: insertMock,
-    }),
+    from: (table: string) => {
+      fromMock(table);
+      return {
+        select: selectMock,
+        insert: insertMock,
+      };
+    },
     channel: channelMock,
     removeChannel: removeChannelMock,
     auth: {
@@ -63,18 +68,19 @@ describe('Chat', () => {
     Element.prototype.scrollIntoView = vi.fn();
   });
 
-  it('renders existing messages in chronological order', async () => {
+  it('renders existing messages in chronological order and selects from messages_with_senders view', async () => {
     getUserMock.mockResolvedValue({ data: { user: { id: 'user-1', email: 'alice@example.com' } } });
     limitMock.mockResolvedValue({
       data: [
-        { id: '2', content: 'Second message', created_at: '2023-10-01T12:05:00Z', user_id: 'user-1', metadata: { sender_name: 'Alice' } },
-        { id: '1', content: 'First message', created_at: '2023-10-01T12:00:00Z', user_id: 'user-2', metadata: { sender_name: 'Bob' } },
+        { id: '2', content: 'Second message', created_at: '2023-10-01T12:05:00Z', user_id: 'user-1', sender_name: 'Alice' },
+        { id: '1', content: 'First message', created_at: '2023-10-01T12:00:00Z', user_id: 'user-2', sender_name: 'Bob' },
       ],
     });
 
     render(<Chat profileId="profile-123" />);
 
     await waitFor(() => {
+      expect(fromMock).toHaveBeenCalledWith('messages_with_senders');
       expect(screen.getByText('First message')).toBeInTheDocument();
       expect(screen.getByText('Second message')).toBeInTheDocument();
     });
@@ -84,12 +90,12 @@ describe('Chat', () => {
     expect(items[1]).toHaveTextContent('Second message');
   });
 
-  it('shows who sent any particular message', async () => {
+  it('shows who sent any particular message using sender_name from read join', async () => {
     getUserMock.mockResolvedValue({ data: { user: { id: 'user-1', email: 'alice@example.com' } } });
     limitMock.mockResolvedValue({
       data: [
-        { id: '1', content: 'Hello from Bob', created_at: '2023-10-01T12:00:00Z', user_id: 'user-2', metadata: { sender_name: 'Bob' } },
-        { id: '2', content: 'Hello from Alice', created_at: '2023-10-01T12:01:00Z', user_id: 'user-1', metadata: { sender_name: 'Alice' } },
+        { id: '1', content: 'Hello from Bob', created_at: '2023-10-01T12:00:00Z', user_id: 'user-2', sender_name: 'Bob' },
+        { id: '2', content: 'Hello from Alice', created_at: '2023-10-01T12:01:00Z', user_id: 'user-1', sender_name: 'Alice' },
       ],
     });
 
@@ -101,7 +107,7 @@ describe('Chat', () => {
     });
   });
 
-  it('renders newly sent messages instantly without page refresh', async () => {
+  it('renders newly sent messages instantly without inserting metadata.sender_name', async () => {
     limitMock.mockResolvedValue({ data: [] });
     getUserMock.mockResolvedValue({ data: { user: { id: 'user-1', email: 'alice@example.com', user_metadata: { name: 'Alice' } } } });
     insertSingleMock.mockResolvedValue({
@@ -111,7 +117,6 @@ describe('Chat', () => {
         p_id: 'profile-123',
         user_id: 'user-1',
         created_at: '2023-10-01T12:10:00Z',
-        metadata: { sender_name: 'Alice' },
       },
     });
 
@@ -124,9 +129,12 @@ describe('Chat', () => {
     fireEvent.click(button);
 
     await waitFor(() => {
-      expect(insertMock).toHaveBeenCalledWith(
-        expect.objectContaining({ content: 'New message', p_id: 'profile-123', user_id: 'user-1', metadata: { sender_name: 'Alice' } })
-      );
+      expect(fromMock).toHaveBeenCalledWith('messages');
+      expect(insertMock).toHaveBeenCalledWith({
+        p_id: 'profile-123',
+        user_id: 'user-1',
+        content: 'New message',
+      });
       expect(screen.getByText('New message')).toBeInTheDocument();
     });
 
@@ -144,7 +152,6 @@ describe('Chat', () => {
         p_id: 'profile-123',
         user_id: 'user-1',
         created_at: '2023-10-01T12:15:00Z',
-        metadata: { sender_name: 'alice@example.com' },
       },
     });
 
@@ -168,7 +175,7 @@ describe('Chat', () => {
     });
 
     limitMock.mockResolvedValue({
-      data: [{ id: '1', content: 'Initial message', created_at: '2023-10-01T12:00:00Z', user_id: 'user-2', metadata: { sender_name: 'Bob' } }],
+      data: [{ id: '1', content: 'Initial message', created_at: '2023-10-01T12:00:00Z', user_id: 'user-2', sender_name: 'Bob' }],
     });
 
     render(<Chat profileId="profile-123" />);
@@ -181,7 +188,7 @@ describe('Chat', () => {
     if (realtimeCallback) {
       act(() => {
         (realtimeCallback as any)({
-          new: { id: '2', content: 'Realtime message', created_at: '2023-10-01T12:02:00Z', user_id: 'user-3', metadata: { sender_name: 'Charlie' } },
+          new: { id: '2', content: 'Realtime message', created_at: '2023-10-01T12:02:00Z', user_id: 'user-3', sender_name: 'Charlie' },
         });
       });
     }
@@ -192,10 +199,10 @@ describe('Chat', () => {
     });
   });
 
-  it('displays fallback sender name when metadata.sender_name is missing', async () => {
+  it('displays fallback sender name when sender_name and metadata.sender_name are missing', async () => {
     getUserMock.mockResolvedValue({ data: { user: { id: 'user-1' } } });
     limitMock.mockResolvedValue({
-      data: [{ id: '1', content: 'Legacy message', created_at: '2023-10-01T12:00:00Z', user_id: 'user-999', metadata: null }],
+      data: [{ id: '1', content: 'Legacy message', created_at: '2023-10-01T12:00:00Z', user_id: 'user-999', sender_name: null, metadata: null }],
     });
 
     render(<Chat profileId="profile-123" />);
