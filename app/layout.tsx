@@ -4,7 +4,13 @@ import Header from '../components/Header';
 
 export const metadata = {
   title: 'CareShare',
-  description: 'Quick pet & person care tracker'
+  description: 'Quick pet & person care tracker',
+  manifest: '/manifest.json',
+  themeColor: '#6366F1',
+  icons: {
+    icon: '/icons/icon-192.png',
+    apple: '/apple-touch-icon.png',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
