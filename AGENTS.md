@@ -28,6 +28,7 @@ CareShare is a Next.js + Supabase PWA for coordinating care activities for depen
 - Enforce RLS on all Supabase tables. Caretakers may only select, insert, and update data for pets they are authorized for.
 - Always use `pnpm` instead of `npm` or `npx` for executing scripts and installing packages (e.g., use `pnpm supabase` instead of `npx supabase`).
 - Prefer nullish coalescing (`??`) over logical OR (`||`) when checking for uninitialized values, to avoid unintentionally catching valid falsy values like empty strings or `0`.
+- Capitalize the argument in `describe` blocks, but do not capitalize the argument in `it` blocks (e.g. `describe('Invite page UI', ...)` vs `it('renders invite header', ...)`).
 
 ## Git
 
