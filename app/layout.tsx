@@ -1,6 +1,6 @@
-/* app/layout.tsx */
 import './globals.css';
 import Header from '../components/Header';
+import RequireName from '../components/RequireName';
 
 export const metadata = {
   title: 'CareShare',
@@ -19,7 +19,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <div className="min-h-screen bg-gray-50 text-gray-900">
           <Header />
-          <main className="max-w-3xl mx-auto p-4">{children}</main>
+          <main className="max-w-3xl mx-auto p-4">
+            <RequireName>{children}</RequireName>
+          </main>
         </div>
       </body>
     </html>

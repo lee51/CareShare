@@ -52,6 +52,11 @@ export default function Page() {
         return;
       }
 
+      if (!sessionUser.user_metadata?.name?.trim()) {
+        router.replace('/profile/name');
+        return;
+      }
+
       setUser(sessionUser);
       setUserName(sessionUser.user_metadata?.name || '');
       openExistingPet(sessionUser.id);
@@ -64,6 +69,11 @@ export default function Page() {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session) {
         router.replace('/login');
+        return;
+      }
+
+      if (!session.user.user_metadata?.name?.trim()) {
+        router.replace('/profile/name');
         return;
       }
 
