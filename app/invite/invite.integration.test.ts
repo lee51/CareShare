@@ -17,7 +17,7 @@ if (!canRunIntegration) {
   );
 }
 
-describe.runIf(canRunIntegration)('invitation system integration test (real local supabase)', () => {
+describe.runIf(canRunIntegration)('Invitation system integration test (real local supabase)', () => {
   let adminClient: SupabaseClient;
   let anonClient: SupabaseClient;
 

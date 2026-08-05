@@ -39,7 +39,7 @@ vi.mock('../../../../lib/supabaseClient', () => ({
   },
 }));
 
-describe('invite page ui', () => {
+describe('Invite page UI', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     singleMock.mockResolvedValue({ data: { id: 'profile-123', name: 'Buddy', kind: 'dog' } });

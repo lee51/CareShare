@@ -28,7 +28,7 @@ vi.mock('../../../lib/supabaseClient', () => ({
   },
 }));
 
-describe('accept invite page ui', () => {
+describe('Accept invite page UI', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
