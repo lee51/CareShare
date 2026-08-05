@@ -1,20 +1,16 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const useLocal =
-  process.env.NEXT_PUBLIC_USE_LOCAL_DB === 'true' ||
-  (Boolean(process.env.NEXT_PUBLIC_LOCAL_SUPABASE_URL) && process.env.NEXT_PUBLIC_USE_LOCAL_DB !== 'false');
+const useLocal = process.env.NEXT_PUBLIC_USE_LOCAL_DB === 'true';
 
-const SUPABASE_URL = (useLocal ? process.env.NEXT_PUBLIC_LOCAL_SUPABASE_URL : process.env.NEXT_PUBLIC_SUPABASE_URL) ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.NEXT_PUBLIC_LOCAL_SUPABASE_URL;
-
-const ANON_KEY = (useLocal ? process.env.NEXT_PUBLIC_LOCAL_SUPABASE_ANON_KEY : process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? process.env.NEXT_PUBLIC_LOCAL_SUPABASE_ANON_KEY;
-
-const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SECRET_KEY;
+const SUPABASE_URL = useLocal ? process.env.NEXT_PUBLIC_LOCAL_SUPABASE_URL : process.env.NEXT_PUBLIC_SUPABASE_URL;
+const ANON_KEY = useLocal ? process.env.NEXT_PUBLIC_LOCAL_SUPABASE_ANON_KEY : process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const SECRET_KEY = useLocal ? process.env.NEXT_PUBLIC_LOCAL_SUPABASE_SECRET_KEY : process.env.SUPABASE_SECRET_KEY;
 
 const missingVars: string[] = [];
-if (!SUPABASE_URL) missingVars.push('NEXT_PUBLIC_SUPABASE_URL (or NEXT_PUBLIC_LOCAL_SUPABASE_URL)');
-if (!ANON_KEY) missingVars.push('NEXT_PUBLIC_SUPABASE_ANON_KEY (or NEXT_PUBLIC_LOCAL_SUPABASE_ANON_KEY)');
-if (!SERVICE_ROLE_KEY) missingVars.push('SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_SECRET_KEY)');
+if (!SUPABASE_URL) missingVars.push('NEXT_PUBLIC_LOCAL_SUPABASE_URL (or NEXT_PUBLIC_SUPABASE_URL)');
+if (!ANON_KEY) missingVars.push('NEXT_PUBLIC_LOCAL_SUPABASE_ANON_KEY (or NEXT_PUBLIC_SUPABASE_ANON_KEY)');
+if (!SECRET_KEY) missingVars.push('NEXT_PUBLIC_LOCAL_SUPABASE_SECRET_KEY (or SUPABASE_SECRET_KEY)');
 
 const canRunIntegration = missingVars.length === 0;
 
@@ -42,7 +38,7 @@ describe.runIf(canRunIntegration)('Invitation system integration test (real loca
   let testInviteId: string;
 
   beforeAll(async () => {
-    adminClient = createClient(SUPABASE_URL!, SERVICE_ROLE_KEY!, {
+    adminClient = createClient(SUPABASE_URL!, SECRET_KEY!, {
       auth: { persistSession: false },
     });
     anonClient = createClient(SUPABASE_URL!, ANON_KEY!, {
