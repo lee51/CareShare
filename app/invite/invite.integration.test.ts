@@ -1,18 +1,27 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const useLocal = process.env.NEXT_PUBLIC_USE_LOCAL_DB === 'true';
 
-const canRunIntegration = Boolean(SUPABASE_URL && SERVICE_ROLE_KEY && ANON_KEY);
+const SUPABASE_URL = (useLocal ? process.env.NEXT_PUBLIC_LOCAL_SUPABASE_URL : process.env.NEXT_PUBLIC_SUPABASE_URL) ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.NEXT_PUBLIC_LOCAL_SUPABASE_URL;
+
+const ANON_KEY = (useLocal ? process.env.NEXT_PUBLIC_LOCAL_SUPABASE_ANON_KEY : process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? process.env.NEXT_PUBLIC_LOCAL_SUPABASE_ANON_KEY;
+
+const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SECRET_KEY;
+
+const missingVars: string[] = [];
+if (!SUPABASE_URL) missingVars.push('NEXT_PUBLIC_SUPABASE_URL (or NEXT_PUBLIC_LOCAL_SUPABASE_URL)');
+if (!ANON_KEY) missingVars.push('NEXT_PUBLIC_SUPABASE_ANON_KEY (or NEXT_PUBLIC_LOCAL_SUPABASE_ANON_KEY)');
+if (!SERVICE_ROLE_KEY) missingVars.push('SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_SECRET_KEY)');
+
+const canRunIntegration = missingVars.length === 0;
 
 if (!canRunIntegration) {
   console.warn(
     '\n========================================================================================\n' +
     '⚠️  [SKIPPED INTEGRATION TEST] app/invite/invite.integration.test.ts\n' +
-    '    Missing environment variables: NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, or NEXT_PUBLIC_SUPABASE_ANON_KEY.\n' +
-    '    To run real integration tests, provide these environment variables in process.env.\n' +
+    `    Missing environment variable(s): ${missingVars.join(', ')}.\n` +
+    '    To run real integration tests, add these to your .env file.\n' +
     '========================================================================================\n'
   );
 }

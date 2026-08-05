@@ -32,6 +32,7 @@ CareShare is a Next.js + Supabase PWA for coordinating care activities for depen
 
 ## Git
 
+- Never commit directly to the `main` branch, even locally. Always create a feature or fix branch.
 - Explicitly ask for user permission before creating branches, committing code, pushing to the remote, or opening pull requests. Never force-push without warning the user first.
 - Commit messages must be a short paragraph explaining the changes.
 - End each commit message with the agent and model identifier on a separate line, for example: `Co-Authored-By: Codex (GPT-5)`.
