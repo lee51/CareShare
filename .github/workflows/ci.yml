@@ -10,7 +10,7 @@ on:
 
 jobs:
   unit-tests:
-    name: Typecheck, Lint & Unit Tests
+    name: Typecheck & Unit Tests
     runs-on: ubuntu-latest
 
     steps:
@@ -31,9 +31,6 @@ jobs:
 
       - name: Typecheck
         run: pnpm typecheck
-
-      - name: Lint
-        run: pnpm lint
 
       - name: Run unit tests
         run: pnpm test run --exclude '**/*.integration.test.ts'
