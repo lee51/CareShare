@@ -52,12 +52,12 @@ describe('Login page UI', () => {
         email: 'user@example.com',
         options: { emailRedirectTo: `${window.location.origin}/` },
       });
-      expect(screen.getByPlaceholderText('12345678')).toBeInTheDocument();
+      expect(screen.getByPlaceholderText('123456')).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Verify Code' })).toBeInTheDocument();
     });
   });
 
-  it('verifies 8-character OTP token when submitted', async () => {
+  it('verifies 6-digit OTP token when submitted', async () => {
     signInWithOtpMock.mockResolvedValue({ error: null });
     verifyOtpMock.mockResolvedValue({ error: null });
 
@@ -67,16 +67,16 @@ describe('Login page UI', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Send Magic Link / Code' }));
 
     await waitFor(() => {
-      expect(screen.getByPlaceholderText('12345678')).toBeInTheDocument();
+      expect(screen.getByPlaceholderText('123456')).toBeInTheDocument();
     });
 
-    fireEvent.change(screen.getByPlaceholderText('12345678'), { target: { value: '12345678' } });
+    fireEvent.change(screen.getByPlaceholderText('123456'), { target: { value: '123456' } });
     fireEvent.click(screen.getByRole('button', { name: 'Verify Code' }));
 
     await waitFor(() => {
       expect(verifyOtpMock).toHaveBeenCalledWith({
         email: 'user@example.com',
-        token: '12345678',
+        token: '123456',
         type: 'email',
       });
       expect(replaceMock).toHaveBeenCalledWith('/');

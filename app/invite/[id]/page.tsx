@@ -118,9 +118,9 @@ export default function AcceptInvitePage({ params }: { params: Promise<{ id: str
   const handleAccept = async () => {
     if (!user || !invite) return;
     setAccepting(true);
-    
+
     const { data, error } = await supabase.rpc('accept_invite', { invite_id: inviteId });
-      
+
     setAccepting(false);
 
     if (error) {
@@ -216,9 +216,9 @@ export default function AcceptInvitePage({ params }: { params: Promise<{ id: str
                   value={token}
                   onChange={(e) => setToken(e.target.value)}
                   className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent transition-all tracking-widest text-center text-xl font-mono"
-                  placeholder="12345678"
+                  placeholder="123456"
                   required
-                  maxLength={8}
+                  maxLength={6}
                 />
               </div>
 
